@@ -51,6 +51,11 @@ Canonical verbs:
   `06_PRODUCT/` to their recorded pins (`git submodule sync` +
   `update --init --recursive`). Run it after a fresh clone or after pulling
   workspace changes that advanced a pin. It never advances a pin itself.
+- `devbox run setup_opencode` — configure OpenCode to use the Asbru gateway:
+  prompts for your VK, enumerates all Meridian models, and writes a sealed
+  `opencode.json` (single `asbru` provider) + a lean, identity-free system
+  prompt (so it bills to the subscription, not metered usage). Running it via
+  this verb guarantees the config lands in `.aihome`, not host `~/.config`.
 - `devbox run doctor` — verify toolchain, host-isolation, roster, submodule
   state (incl. unpushed component pins), and knowledge bundle integrity
 - `devbox run archive <project>` — safely retire a project into

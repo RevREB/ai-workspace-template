@@ -18,7 +18,8 @@
     "PATH": "$PWD/.aihome/npm/bin:$PATH",
     "OPENCODE_CONFIG_DIR": "$PWD/.aihome/config/opencode",
     "OPENCODE_DISABLE_CLAUDE_CODE_PROMPT": "1",
-    "OPENCODE_DISABLE_CLAUDE_CODE_SKILLS": "1"
+    "OPENCODE_DISABLE_CLAUDE_CODE_SKILLS": "1",
+    "NODE_EXTRA_CA_CERTS": "$PWD/.aihome/config/opencode/mininet-ca.pem"
   },
   "shell": {
     "init_hook": [
@@ -31,6 +32,9 @@
       ],
       "sync": [
         "scripts/sync.sh"
+      ],
+      "setup_opencode": [
+        "scripts/setup-opencode.sh"
       ],
       "doctor": [
         "scripts/doctor.sh"
