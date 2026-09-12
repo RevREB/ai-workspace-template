@@ -1,0 +1,3 @@
+{
+  "$comment": "Workspace-local Claude Code settings (seeded into .aihome/config/claude via CLAUDE_CONFIG_DIR). Host ~/.claude is NOT inherited inside the devbox shell."
+}

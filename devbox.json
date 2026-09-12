@@ -1,0 +1,33 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/main/.schema/devbox.schema.json",
+  "packages": [
+    "git@latest",
+    "jq@latest",
+    "nodejs@latest"
+  ],
+  "env": {
+    "WORKSPACE_ROOT": "$PWD",
+    "AI_HOME": "$PWD/.aihome",
+    "XDG_CONFIG_HOME": "$PWD/.aihome/config",
+    "XDG_DATA_HOME": "$PWD/.aihome/data",
+    "XDG_STATE_HOME": "$PWD/.aihome/state",
+    "XDG_CACHE_HOME": "$PWD/.cache",
+    "CLAUDE_CONFIG_DIR": "$PWD/.aihome/config/claude",
+    "OPENCODE_CONFIG": "$PWD/.aihome/config/opencode/opencode.json",
+    "NPM_CONFIG_PREFIX": "$PWD/.aihome/npm",
+    "PATH": "$PWD/.aihome/npm/bin:$PATH"
+  },
+  "shell": {
+    "init_hook": [
+      "mkdir -p .aihome/config .aihome/data .aihome/state .aihome/npm/bin .cache",
+      "echo \"ai-workspace: $(basename \"$PWD\") ready — AI config sealed to .aihome/ (host-isolated) — 'devbox run doctor' to verify\""
+    ],
+    "scripts": {
+      "provision": ["scripts/provision.sh \"$@\""],
+      "doctor": ["scripts/doctor.sh"],
+      "archive": ["scripts/archive.sh \"$@\""],
+      "clean": ["rm -rf .cache/ .devbox/"],
+      "reset-ai": ["rm -rf .aihome/ && echo 'AI home wiped — run: devbox run provision'"]
+    }
+  }
+}

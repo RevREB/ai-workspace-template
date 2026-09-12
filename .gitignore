@@ -1,0 +1,20 @@
+# --- Devbox / Nix / direnv (rebuildable local state — never commit) ---
+.devbox/          # devbox local state: the Nix profile symlinks + gcroots for this workspace
+.direnv/          # direnv cache (devbox's direnv integration writes here on `direnv allow`)
+.cache/           # workspace XDG cache ($XDG_CACHE_HOME)
+result            # stray `nix build` output symlink, if ever created
+result-*
+# NOTE: devbox.lock is intentionally NOT ignored — it is the reproducibility
+# lockfile (like package-lock.json). Commit it.
+
+# --- Sealed AI home (provisioned per workspace, contains creds/tools) ---
+.aihome/
+
+# --- No .env layer (tripwire) ---
+# This template keeps all env in devbox.json. If someone reintroduces a .env,
+# never commit it.
+.env
+.env.*
+
+# --- OS noise ---
+.DS_Store

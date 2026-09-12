@@ -1,0 +1,5 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "$comment": "Workspace-local OpenCode config (seeded into .aihome/config/opencode). Add your provider(s) here. Instructions come from the workspace AGENTS.md; host ~/.claude is NOT inherited.",
+  "instructions": ["AGENTS.md"]
+}

@@ -1,0 +1,19 @@
+{
+  "_comment": "AI CLI roster for this workspace. Unlike the old Claude plugin roster (which was user-global in ~/.claude), these are provisioned into the workspace's sealed .aihome/ by 'devbox run provision' — nothing touches host config. Add/remove CLIs here; each is installed from npm under .aihome/npm and its workspace config is seeded from config-seeds/<name>/.",
+  "clis": [
+    {
+      "name": "opencode",
+      "npm": "opencode-ai",
+      "bin": "opencode",
+      "config_seed": "opencode",
+      "config_dest": ".aihome/config/opencode"
+    },
+    {
+      "name": "claude",
+      "npm": "@anthropic-ai/claude-code",
+      "bin": "claude",
+      "config_seed": "claude",
+      "config_dest": ".aihome/config/claude"
+    }
+  ]
+}
