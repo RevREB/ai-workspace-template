@@ -24,6 +24,7 @@ what the agent sees is defined entirely by this repo.
 
 ## Verbs
 - `devbox run provision [cli...]` — install roster CLIs into `.aihome/` + seed config
+- `devbox run sync` — hydrate/sync `06_PRODUCT/` component submodules to their recorded pins (never advances a pin)
 - `devbox run doctor` — verify toolchain, host-isolation, roster, submodule pins
 - `devbox run archive <project>` — retire a project (records pins, detaches submodules)
 - `devbox run reset-ai` — wipe `.aihome/` for a clean re-provision
@@ -35,5 +36,12 @@ what the agent sees is defined entirely by this repo.
 3. `devbox run provision` — installs the AI CLIs into `.aihome/`.
 4. `devbox run doctor` — confirm host-isolation is intact.
 5. Edit `[01] system/config-seeds/<cli>/` to set providers/keys per workspace.
+
+## Clone an existing instance (e.g. on another machine)
+1. `git clone <workspace-repo>` (git must be authed to any private component repos).
+2. `cd` in, `direnv allow` (or `devbox shell`).
+3. `devbox run sync` — pull the `06_PRODUCT/` component submodules to their pins.
+4. `devbox run provision` — install the AI CLIs into `.aihome/`.
+5. `devbox run doctor` — confirm host-isolation + pins are intact.
 
 Host prerequisites: only `git`, `devbox`, `direnv`.

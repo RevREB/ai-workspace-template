@@ -23,11 +23,24 @@
       "echo \"ai-workspace: $(basename \"$PWD\") ready — AI config sealed to .aihome/ (host-isolated) — 'devbox run doctor' to verify\""
     ],
     "scripts": {
-      "provision": ["scripts/provision.sh \"$@\""],
-      "doctor": ["scripts/doctor.sh"],
-      "archive": ["scripts/archive.sh \"$@\""],
-      "clean": ["rm -rf .cache/ .devbox/"],
-      "reset-ai": ["rm -rf .aihome/ && echo 'AI home wiped — run: devbox run provision'"]
+      "provision": [
+        "scripts/provision.sh \"$@\""
+      ],
+      "sync": [
+        "scripts/sync.sh"
+      ],
+      "doctor": [
+        "scripts/doctor.sh"
+      ],
+      "archive": [
+        "scripts/archive.sh \"$@\""
+      ],
+      "clean": [
+        "rm -rf .cache/ .devbox/"
+      ],
+      "reset-ai": [
+        "rm -rf .aihome/ && echo 'AI home wiped — run: devbox run provision'"
+      ]
     }
   }
 }

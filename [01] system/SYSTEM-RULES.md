@@ -123,6 +123,11 @@ frontmatter, no workspace tooling. They have only their own conventions.
   remote ref). A workspace commit that advances pins IS the record that
   those component versions belong together — reconstruction is
   `git checkout` of that commit.
+- **Hydrating (SHA → working tree):** `devbox run sync` checks out every
+  component to its recorded pin (`git submodule sync` +
+  `update --init --recursive`). Run it after a fresh clone or after pulling
+  workspace changes that moved a pin. It only ever moves checkouts *to* the
+  recorded pins — it never advances a pin (that is the deliberate act above).
 - **Outputs rule:** `[04] outputs/` is decoupled from git and the work
   product — it holds only final deliverable *files* (a sent PDF, a
   submitted form, an exported render). Repo-shaped deliverables live in the

@@ -47,6 +47,10 @@ Canonical verbs:
 - `devbox run provision [cli...]` — install the workspace's AI CLIs into
   `.aihome/` and seed their config (default: all in the roster; e.g.
   `devbox run provision opencode claude`)
+- `devbox run sync` — hydrate/sync the project component submodules under
+  `06_PRODUCT/` to their recorded pins (`git submodule sync` +
+  `update --init --recursive`). Run it after a fresh clone or after pulling
+  workspace changes that advanced a pin. It never advances a pin itself.
 - `devbox run doctor` — verify toolchain, host-isolation, roster, submodule
   state (incl. unpushed component pins), and knowledge bundle integrity
 - `devbox run archive <project>` — safely retire a project into
