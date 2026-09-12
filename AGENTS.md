@@ -21,6 +21,16 @@ Quick map:
   decoupled from git/work product
 - `[99] archive/` — old material; searchable but never authoritative
 
+## Write it back (keep the docs true)
+
+Reading is only half the job. **A change is not done until the docs the next agent
+reads reflect it, in the same commit** — because `[02] knowledge/` is authoritative,
+a stale entry makes the next agent confidently wrong. When you change the system:
+update the project `00_BRIEF.md` + `ARCHITECTURE.md` (and their `last_verified`),
+update/add the relevant `[02] knowledge/` file, and append a dated entry to the
+project's `02_NOTES/CHANGELOG.md` (the project's memory). Full rule + the
+`devbox run doctor` checks that surface violations: `SYSTEM-RULES.md` §9.
+
 ## Environment: Devbox (hermetic, host-isolated)
 
 The dev toolchain is hermetic: enter via direnv (`direnv allow`, then re-enter

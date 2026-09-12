@@ -42,5 +42,32 @@ if [ -d "[02] knowledge" ]; then
   [ "${bad:-0}" -gt 0 ] && warn "$bad knowledge file(s) missing a 'status:' field" || ok "knowledge bundle has status fields"
 fi
 
+# --- documentation currency (write-back discipline, SYSTEM-RULES Rule 9) ---
+if git rev-parse --git-dir >/dev/null 2>&1; then
+  # (a) stale docs: a last_verified date older than 30 days
+  cutoff=$(date -v-30d +%F 2>/dev/null || date -d '30 days ago' +%F 2>/dev/null || echo "")
+  if [ -n "$cutoff" ]; then
+    stale=0
+    while IFS= read -r f; do
+      lv=$(grep -m1 -iE '^last[_ -]?verified:' "$f" 2>/dev/null | sed -E 's/^[^:]*:[[:space:]]*//; s/[]["'"'"' ]//g')
+      if [ -n "$lv" ] && [[ "$lv" < "$cutoff" ]]; then warn "stale doc (verified $lv < $cutoff, >30d): $f"; stale=1; fi
+    done < <(find "[02] knowledge" "[03] projects" -type f -name '*.md' 2>/dev/null | grep -iE 'knowledge/|ARCHITECTURE|00_BRIEF')
+    [ "$stale" -eq 0 ] && ok "docs within currency window (last_verified <= 30d)"
+  fi
+  # (b) unreviewed-approved tripwire: uncommitted knowledge already marked approved
+  while IFS= read -r f; do
+    if grep -qiE '^status:[[:space:]]*approved' "$f" 2>/dev/null && [ -n "$(git status --porcelain -- "$f" 2>/dev/null)" ]; then
+      warn "uncommitted knowledge marked status:approved ($f) — approval is a human act (Rule 3); review before committing"
+    fi
+  done < <(find "[02] knowledge" -type f -name '*.md' ! -name '_TEMPLATE.md' 2>/dev/null)
+  # (c) projects with components should keep a decision log
+  for pj in "[03] projects/"*/; do
+    [ -d "${pj}06_PRODUCT" ] || continue
+    case "$pj" in *_project-template/*) continue;; esac
+    if [ -f "${pj}02_NOTES/CHANGELOG.md" ]; then ok "changelog present: ${pj}02_NOTES/CHANGELOG.md"
+    else warn "no 02_NOTES/CHANGELOG.md in ${pj} — log material changes there (Rule 9)"; fi
+  done
+fi
+
 if [ $rc -eq 0 ]; then ok "doctor: all green"; else warn "doctor: issues above"; fi
 exit $rc

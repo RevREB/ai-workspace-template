@@ -6,6 +6,7 @@ owner: "me"
 tags: [tag1, tag2]
 timestamp: 2026-08-30T00:00:00Z
 status: draft          # draft | approved | deprecated — approval is a human act (Rule 3)
+last_verified: 2026-08-30    # YYYY-MM-DD — bump when you confirm this still matches reality
 ---
 
 # Concept Name

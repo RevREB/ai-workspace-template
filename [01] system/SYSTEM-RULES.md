@@ -164,8 +164,37 @@ frontmatter, no workspace tooling. They have only their own conventions.
 - Never install an AI CLI or tool ad hoc; add it to the roster first, then
   `devbox run provision`.
 
-## 9. Summary Mnemonic
+## 9. Documentation Currency (write it back)
+
+Reading the docs is half the protocol; keeping what the next agent reads *true*
+is the other half. Because `[02] knowledge/` is an **authoritative** tier, a
+stale entry doesn't just leave a gap — it makes the next agent confidently wrong.
+So **a change is not done until the docs that describe it are updated in the same
+commit.**
+
+When you change the system, update the matching docs:
+
+| When you… | Update |
+|---|---|
+| change deploy / build / version | the project `00_BRIEF.md` current-state + `ARCHITECTURE.md` "Last verified" |
+| add / remove / retire a component or dependency | `00_BRIEF.md` component list + `ARCHITECTURE.md` (narrative **and** diagram) + the affected `[02] knowledge/` file |
+| change a contract, procedure, or constant | the matching `[02] knowledge/` file + bump its `last_verified` (never silently flip `status` — approval is a human act, Rule 3) |
+| advance a component pin | `git add` the pin **and** append a decision-log entry |
+| **any material change** | append one dated entry to the project's `02_NOTES/CHANGELOG.md` |
+
+- **`02_NOTES/CHANGELOG.md`** is the project's memory: append-only, newest last,
+  one entry per material change (*what changed, why, which docs you updated*).
+- Knowledge and `ARCHITECTURE.md` carry a `last_verified: YYYY-MM-DD` field; bump
+  it when you confirm the content still matches reality.
+- If you find a doc already stale, fix it as part of your task and log it.
+- `devbox run doctor` surfaces violations (stale `last_verified`, an uncommitted
+  `status: approved` file, a project missing its `CHANGELOG.md`). Like the rest of
+  this workspace it's convention + a visible check, not filesystem enforcement —
+  the discipline is yours to keep.
+
+## 10. Summary Mnemonic
 
 > Markdown for instructions. Numbers for order. Names for meaning.
 > Dates for search. Archive for noise. Knowledge for truth.
 > Product in its own repos. Pins for provenance. Roster for tools.
+> Change it, then write it back.
