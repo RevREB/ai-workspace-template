@@ -15,7 +15,10 @@
     "CLAUDE_CONFIG_DIR": "$PWD/.aihome/config/claude",
     "OPENCODE_CONFIG": "$PWD/.aihome/config/opencode/opencode.json",
     "NPM_CONFIG_PREFIX": "$PWD/.aihome/npm",
-    "PATH": "$PWD/.aihome/npm/bin:$PATH"
+    "PATH": "$PWD/.aihome/npm/bin:$PATH",
+    "OPENCODE_CONFIG_DIR": "$PWD/.aihome/config/opencode",
+    "OPENCODE_DISABLE_CLAUDE_CODE_PROMPT": "1",
+    "OPENCODE_DISABLE_CLAUDE_CODE_SKILLS": "1"
   },
   "shell": {
     "init_hook": [

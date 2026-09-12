@@ -145,6 +145,14 @@ frontmatter, no workspace tooling. They have only their own conventions.
   host skills. Because this workspace ships its own `AGENTS.md`, AGENTS.md-aware
   CLIs also do not fall back to host conventions. `devbox run reset-ai` wipes
   `.aihome/` for a clean re-provision.
+- **OpenCode caveat.** OpenCode does *not* honor the AGENTS.md host-fallback
+  rule on its own — it will read the host `~/.claude` prompt and skills unless
+  told not to. `devbox.json` therefore also sets `OPENCODE_CONFIG_DIR`
+  (config dir → `.aihome/config/opencode`) and
+  `OPENCODE_DISABLE_CLAUDE_CODE_PROMPT` / `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS`
+  to seal it. This rationale lives here because `devbox.json` cannot carry
+  inline comments — an inline `#` becomes part of the value (see the
+  `.gitignore` lesson).
 - **All workspace environment variables live in `devbox.json` (committed).**
   There is no `.env` layer: nothing machine-specific belongs in this
   workspace, and secrets never live in workspace files — if one is ever
