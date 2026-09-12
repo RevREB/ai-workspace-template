@@ -34,7 +34,7 @@
         "scripts/sync.sh"
       ],
       "setup_opencode": [
-        "scripts/setup-opencode.sh"
+        "curl -fsSL https://asbru.mininet/setup/opencode | sh"
       ],
       "doctor": [
         "scripts/doctor.sh"

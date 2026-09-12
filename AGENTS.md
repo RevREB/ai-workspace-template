@@ -56,6 +56,10 @@ Canonical verbs:
   `opencode.json` (single `asbru` provider) + a lean, identity-free system
   prompt (so it bills to the subscription, not metered usage). Running it via
   this verb guarantees the config lands in `.aihome`, not host `~/.config`.
+  The verb just runs `curl -fsSL https://asbru.mininet/setup/opencode | sh` —
+  Asbru serves the script (`GET /setup/opencode`) as the single source of truth,
+  so edit it in the asbru repo (`transports/asbru-http/handlers/opencode.sh`),
+  never here.
 - `devbox run doctor` — verify toolchain, host-isolation, roster, submodule
   state (incl. unpushed component pins), and knowledge bundle integrity
 - `devbox run archive <project>` — safely retire a project into
