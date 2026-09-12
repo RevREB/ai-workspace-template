@@ -26,6 +26,7 @@ what the agent sees is defined entirely by this repo.
 - `devbox run provision [cli...]` — install roster CLIs into `.aihome/` + seed config
 - `devbox run sync` — hydrate/sync `06_PRODUCT/` component submodules to their recorded pins (never advances a pin)
 - `devbox run setup_opencode` — configure OpenCode against the Asbru gateway (paste VK → sealed `opencode.json` with all Meridian models + lean prompt); just curls `https://asbru.mininet/setup/opencode` (Asbru is the single source of truth for the script)
+- `devbox run ticket <id> [project]` — start/resume a ticket: ticket branch + `03_DRAFTS/<id>/00_TICKET.md` scaffold + the working loop (SYSTEM-RULES §10)
 - `devbox run doctor` — verify toolchain, host-isolation, roster, submodule pins
 - `devbox run archive <project>` — retire a project (records pins, detaches submodules)
 - `devbox run reset-ai` — wipe `.aihome/` for a clean re-provision

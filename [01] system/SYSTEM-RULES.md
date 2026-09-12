@@ -192,9 +192,48 @@ When you change the system, update the matching docs:
   this workspace it's convention + a visible check, not filesystem enforcement —
   the discipline is yours to keep.
 
-## 10. Summary Mnemonic
+## 10. Working a Ticket
+
+This is how a human and a bot share work: a ticket points at this meta-repo, and
+the context follows the work. A ticket handed to a bot MUST carry:
+
+| Field | Meaning |
+|---|---|
+| `id` | stable ticket identifier |
+| `workspace` | this repo's clone URL |
+| `project` | which `[03] projects/<name>` it targets |
+| `goal` | what "done" looks like |
+| `acceptance` | how "done" is verified |
+| `constraints` | optional — component(s), deadline, hard requirements |
+
+Given `(workspace, ticket)`, the loop (`devbox run ticket <id>` scaffolds 0–1):
+
+0. **Bootstrap** — clone → `direnv allow`/`devbox shell` → `devbox run sync` →
+   `devbox run provision` → `devbox run doctor` (green before working).
+1. **Branch + record** — work on `ticket/<id>`; the living record is
+   `[03] projects/<project>/03_DRAFTS/<id>/00_TICKET.md` (goal, plan, work log, outcome).
+2. **Orient** — read `ARCHITECTURE.md` → `00_BRIEF.md` → the relevant `[02] knowledge/`
+   (Retrieval Protocol, Rule 2). Never start blank when the desk already has memory.
+3. **Work** — code lands as a PR into the right `06_PRODUCT/<component>` (Product
+   Boundary, Rule 7); non-repo deliverables to `05_FINAL/` + `[04] outputs/`.
+4. **Write back** — update `00_BRIEF`/`ARCHITECTURE`/`[02] knowledge` + `last_verified`,
+   advance pins, append a `02_NOTES/CHANGELOG.md` entry (Documentation Currency, Rule 9).
+5. **Report** — fill the ticket's Outcome, set `status: in-review`, open a workspace PR
+   for `ticket/<id>`, and post the Outcome back to the ticket's source.
+
+**Concurrency (an army of bots):** one ticket = one branch, or one ephemeral clone
+(a fresh desk per ticket). Bots reconcile through PRs to the canonical workspace, the
+same way component pins do; `main` is the shared record, a ticket branch is a private
+draft until reviewed.
+
+**What lives where:** the ticket's *assignment* comes from outside (Yrkjendr / an issue
+tracker); its *trail* — plan, decisions, outcome — lives in `00_TICKET.md` + `CHANGELOG.md`
+so the next bot or human inherits it. Org-durable, cross-project knowledge is promoted
+out to an external KB; this repo is the lowest-order layer beneath it.
+
+## 11. Summary Mnemonic
 
 > Markdown for instructions. Numbers for order. Names for meaning.
 > Dates for search. Archive for noise. Knowledge for truth.
 > Product in its own repos. Pins for provenance. Roster for tools.
-> Change it, then write it back.
+> Change it, then write it back. A ticket points here; the context follows.

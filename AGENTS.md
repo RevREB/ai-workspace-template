@@ -31,6 +31,17 @@ update/add the relevant `[02] knowledge/` file, and append a dated entry to the
 project's `02_NOTES/CHANGELOG.md` (the project's memory). Full rule + the
 `devbox run doctor` checks that surface violations: `SYSTEM-RULES.md` §9.
 
+## Working a ticket
+
+A ticket points at this repo; the context follows the work. If you were handed a
+ticket `(id, project, goal, acceptance)`, run `devbox run ticket <id>` and follow
+the loop it prints: **bootstrap** (`sync`/`provision`/`doctor`) → **orient** (read
+`ARCHITECTURE.md` → `00_BRIEF.md` → relevant `[02] knowledge/`) → **work** (code as
+a PR into `06_PRODUCT/<component>`; non-repo to `05_FINAL/`+`[04] outputs/`) →
+**write back** (§9) → **report** (fill the ticket's `00_TICKET.md` Outcome, open a
+workspace PR for `ticket/<id>`, post the outcome back to the ticket source). One
+ticket = one branch (or one ephemeral clone). Full contract: `SYSTEM-RULES.md` §10.
+
 ## Environment: Devbox (hermetic, host-isolated)
 
 The dev toolchain is hermetic: enter via direnv (`direnv allow`, then re-enter
@@ -70,6 +81,9 @@ Canonical verbs:
   Asbru serves the script (`GET /setup/opencode`) as the single source of truth,
   so edit it in the asbru repo (`transports/asbru-http/handlers/opencode.sh`),
   never here.
+- `devbox run ticket <id> [project] ["title"]` — start/resume a ticket: creates
+  the `ticket/<id>` branch, scaffolds `03_DRAFTS/<id>/00_TICKET.md`, and prints the
+  Working-a-ticket loop (SYSTEM-RULES §10).
 - `devbox run doctor` — verify toolchain, host-isolation, roster, submodule
   state (incl. unpushed component pins), and knowledge bundle integrity
 - `devbox run archive <project>` — safely retire a project into

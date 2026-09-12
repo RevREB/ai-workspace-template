@@ -36,6 +36,9 @@
       "setup_opencode": [
         "curl -fsSL https://asbru.mininet/setup/opencode | sh"
       ],
+      "ticket": [
+        "scripts/ticket.sh \"$@\""
+      ],
       "doctor": [
         "scripts/doctor.sh"
       ],
