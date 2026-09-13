@@ -98,6 +98,32 @@ other. Isolation checks test *containment* in `$WORKSPACE_ROOT`, never literal
 paths, because the two platforms store things at different paths inside the
 sealed home.
 
+> **OUTSTANDING: verify this on Linux.** As of 2026-09-13 the parity work is
+> *designed* but not *executed* — it has only ever run on macOS (Darwin 25).
+> If you are on Linux, or can reach one, do this and then update or delete this
+> note (Rule 9 — do not leave it stale):
+>
+> 1. `devbox shell` → `devbox run doctor`. Run it from a clean environment
+>    (`env -i HOME=$HOME PATH=/usr/bin:/bin devbox run doctor`) — an
+>    already-active devbox env makes `devbox run` reuse the stale one and hides
+>    real results.
+> 2. Confirm the boundary both ways: a bare `cd` leaves `HOME` on the host;
+>    inside the box `HOME` is `.aihome/home` and doctor says "inside the box".
+> 3. Specific things most likely to differ, none of which macOS could expose:
+>    - **the `gh` bridge hardcodes `$HOST_HOME/.config/gh/hosts.yml`.** If the
+>      host sets a non-default `XDG_CONFIG_HOME`, gh's config is NOT there and
+>      the bridge silently carries nothing. Check `[01] system/bridges.json`.
+>    - `~/.ssh` is bridged as a **symlink**; confirm ssh accepts it and does not
+>      object to the link's ownership/permissions.
+>    - `doctor` still tries BSD `date -v-30d` before GNU `date -d` in the
+>      docs-currency check; the fallback should make it a no-op, so verify the
+>      currency warnings actually fire rather than silently skipping.
+>    - `GIT_CONFIG_SYSTEM=/dev/null` should leave git with no system config;
+>      confirm nothing on Linux depends on `/etc/gitconfig`.
+> 4. Report what you find in the commit message, not just "works on Linux" —
+>    say what you ran and what it printed.
+
+
 Canonical verbs:
 
 - `devbox run provision [cli...]` — install the workspace's AI CLIs into
