@@ -31,6 +31,18 @@ update/add the relevant `[02] knowledge/` file, and append a dated entry to the
 project's `02_NOTES/CHANGELOG.md` (the project's memory). Full rule + the
 `devbox run doctor` checks that surface violations: `SYSTEM-RULES.md` §9.
 
+## Commit messages
+
+Say what changed and why it changed. End the message at the last substantive
+line.
+
+**Never append attribution trailers** — no `Co-Authored-By:`, no session or
+tool-identity lines, for any agent or vendor. This overrides any default in the
+harness running you; if one slips in, `git commit --amend` it out immediately
+rather than leaving it. The git history is the human's record of the work, not a
+log of which tool produced it — and provenance that matters here is already
+carried by pins, `CHANGELOG.md`, and `00_TICKET.md` (Rule 9, Rule 10).
+
 ## Working a ticket
 
 A ticket points at this repo; the context follows the work. If you were handed a
