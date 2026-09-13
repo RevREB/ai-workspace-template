@@ -14,11 +14,6 @@ result-*
 # --- Sealed AI home (provisioned per workspace, contains creds/tools) ---
 .aihome/
 
-# --- AI-CLI sealing shims (generated per roster by 'devbox run provision') ---
-# bin/sealed is hand-written and roster-independent, so it IS committed.
-bin/*
-!bin/sealed
-
 # --- No .env layer (tripwire) ---
 # This template keeps all env in devbox.json. If someone reintroduces a .env,
 # never commit it.

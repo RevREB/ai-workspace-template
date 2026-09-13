@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Create the sealed home and auto-bridge the host credentials declared in
-# [01] system/bridges.json. Called by scripts/sealed-exec.sh on EVERY sealed
-# launch — never from the devbox init_hook, which would seal the human's shell.
+# [01] system/bridges.json. Runs from the devbox init_hook — i.e. on entry to
+# the box ('devbox shell') and on every 'devbox run'. Never on a bare cd:
+# .envrc deliberately does not activate devbox.
 #
 # Why HOME: XDG_* and per-CLI *_CONFIG_DIR only redirect tools that agreed to
 # honor them. Moving $HOME captures EVERY tool — including ones that hardcode

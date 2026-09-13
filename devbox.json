@@ -14,44 +14,41 @@
   ],
   "env": {
     "WORKSPACE_ROOT": "$PWD",
+    "HOST_HOME": "$HOME",
+    "HOME": "$PWD/.aihome/home",
     "AI_HOME": "$PWD/.aihome",
+    "XDG_CONFIG_HOME": "$PWD/.aihome/config",
+    "XDG_DATA_HOME": "$PWD/.aihome/data",
+    "XDG_STATE_HOME": "$PWD/.aihome/state",
     "XDG_CACHE_HOME": "$PWD/.cache",
+    "GIT_CONFIG_GLOBAL": "$PWD/.aihome/home/.gitconfig",
+    "GIT_CONFIG_SYSTEM": "/dev/null",
+    "CLAUDE_CONFIG_DIR": "$PWD/.aihome/config/claude",
+    "OPENCODE_CONFIG": "$PWD/.aihome/config/opencode/opencode.json",
+    "OPENCODE_CONFIG_DIR": "$PWD/.aihome/config/opencode",
+    "OPENCODE_DISABLE_CLAUDE_CODE_PROMPT": "1",
+    "OPENCODE_DISABLE_CLAUDE_CODE_SKILLS": "1",
     "NPM_CONFIG_PREFIX": "$PWD/.aihome/npm",
-    "PATH": "$PWD/bin:$PWD/.aihome/npm/bin:$PATH"
+    "NPM_CONFIG_USERCONFIG": "$PWD/.aihome/home/.npmrc",
+    "PATH": "$PWD/.aihome/npm/bin:$PATH",
+    "NODE_EXTRA_CA_CERTS": "$PWD/.aihome/config/opencode/mininet-ca.pem"
   },
   "shell": {
     "init_hook": [
-      "mkdir -p .aihome/config .aihome/data .aihome/state .aihome/npm/bin .cache bin",
-      "echo \"ai-workspace: $(basename \"$PWD\") ready — your shell is NOT sealed; AI CLIs are (bin/ shims) — 'devbox run doctor' to verify\""
+      "mkdir -p .aihome/config .aihome/data .aihome/state .aihome/npm/bin .cache",
+      "scripts/seal-home.sh",
+      "echo \"ai-workspace: $(basename \"$PWD\") ready — you are INSIDE the sealed box (HOME=.aihome/home); 'exit' returns you to the host\""
     ],
     "scripts": {
-      "provision": [
-        "scripts/provision.sh \"$@\""
-      ],
-      "sync": [
-        "scripts/sync.sh"
-      ],
-      "setup_opencode": [
-        "curl -fsSL https://asbru.mininet/setup/opencode | sh"
-      ],
-      "ticket": [
-        "scripts/ticket.sh \"$@\""
-      ],
-      "doctor": [
-        "scripts/doctor.sh"
-      ],
-      "bridge": [
-        "scripts/sealed-exec.sh scripts/bridge.sh \"$@\""
-      ],
-      "archive": [
-        "scripts/archive.sh \"$@\""
-      ],
-      "clean": [
-        "rm -rf .cache/ .devbox/"
-      ],
-      "reset-ai": [
-        "rm -rf .aihome/ && echo 'AI home wiped — run: devbox run provision'"
-      ]
+      "provision": ["scripts/provision.sh \"$@\""],
+      "sync": ["scripts/sync.sh"],
+      "setup_opencode": ["curl -fsSL https://asbru.mininet/setup/opencode | sh"],
+      "ticket": ["scripts/ticket.sh \"$@\""],
+      "bridge": ["scripts/bridge.sh \"$@\""],
+      "doctor": ["scripts/doctor.sh"],
+      "archive": ["scripts/archive.sh \"$@\""],
+      "clean": ["rm -rf .cache/ .devbox/"],
+      "reset-ai": ["rm -rf .aihome/ && echo 'AI home wiped — run: devbox run provision'"]
     }
   }
 }

@@ -10,68 +10,61 @@ miss=""
 for t in git jq node npm; do command -v "$t" >/dev/null 2>&1 || miss="$miss $t"; done
 if [ -z "$miss" ]; then ok "toolchain present (git, jq, node, npm)"; else warn "missing tools:$miss"; rc=1; fi
 
-# --- your shell must NOT be sealed -----------------------------------------
-# Isolation belongs to the AI CLIs, not to a human standing in the directory.
-# Sealing via devbox.json's env would seal the ambient shell too, so merely
-# cd-ing in (direnv) would strip your own git identity, credentials and
-# ~/.zshrc. A sealed ambient shell is therefore a FAULT, not a success.
+# --- you must be INSIDE the box -------------------------------------------
+# The devbox shell IS the isolated environment. A bare `cd` must NOT put you
+# here — .envrc deliberately does not activate devbox, because direnv's
+# `use devbox` exports this env into your current shell and would seal you
+# without your having entered anything.
+#
+# Checked by CONTAINMENT, never by exact path: macOS tools write to
+# ~/Library/Application Support/... and Linux tools to ~/.config/... — both land
+# inside the sealed HOME at different paths, so a literal assertion would pass
+# on one OS and fail on the other.
 case "${HOME:-}" in
-  "$PWD"/*) warn "your shell is sealed (HOME='$HOME') — isolation leaked out of the shims into the ambient shell; check devbox.json env"; rc=1 ;;
-  *) ok "your shell is NOT sealed (HOME='${HOME:-unset}') — your own git/credentials work normally" ;;
+  "$PWD"/*) ok "inside the box — HOME sealed to ${HOME#$PWD/} (tools that hardcode ~/ land inside)" ;;
+  *) warn "NOT inside the box (HOME='${HOME:-unset}') — run 'devbox shell' (a bare cd does not enter)"; rc=1 ;;
 esac
+for v in AI_HOME HOST_HOME XDG_CONFIG_HOME XDG_DATA_HOME XDG_STATE_HOME CLAUDE_CONFIG_DIR OPENCODE_CONFIG_DIR GIT_CONFIG_GLOBAL NPM_CONFIG_PREFIX NPM_CONFIG_USERCONFIG; do
+  val=${!v:-}
+  case "$v:$val" in
+    HOST_HOME:"$PWD"/*) warn "HOST_HOME points inside the workspace ('$val') — bridges cannot find the host"; rc=1 ;;
+    HOST_HOME:) warn "HOST_HOME unset — bridges cannot find the host"; rc=1 ;;
+    HOST_HOME:*) ok "HOST_HOME captured ($val)" ;;
+    *:"$PWD"/*) ok "$v workspace-local" ;;
+    *:) warn "$v unset"; rc=1 ;;
+    *) warn "$v escapes the workspace ('$val')"; rc=1 ;;
+  esac
+done
 if [ -f AGENTS.md ]; then ok "AGENTS.md present (AGENTS.md-aware CLIs won't fall back to host ~/.claude)"; else warn "AGENTS.md missing — CLIs may inherit host config"; rc=1; fi
 
-# --- the shims must seal ----------------------------------------------------
-# Probed by RUNNING the wrapper, not by reading env vars — the only question
-# that matters is what a launched agent actually sees.
-if [ -x scripts/sealed-exec.sh ]; then
-  probe=$(scripts/sealed-exec.sh sh -c '
-    printf "%s\t%s\t%s\n" "$HOME" \
-      "$(git config --list --show-origin --show-scope 2>/dev/null \
-         | awk -F"\t" "\$1!=\"local\" && \$1!=\"worktree\" {print \$2}" \
-         | sed "s/^file://" | sort -u | tr "\n" "," )" \
-      "$(npm config get userconfig 2>/dev/null)"' 2>/dev/null)
-  shome=$(printf '%s' "$probe" | cut -f1)
-  sgit=$(printf '%s' "$probe" | cut -f2)
-  snpm=$(printf '%s' "$probe" | cut -f3)
-
-  # CONTAINMENT, never exact paths: macOS writes to ~/Library/Application
-  # Support/... and Linux to ~/.config/... — both inside the sealed home at
-  # different paths, so a literal assertion would pass on one OS, fail on other.
-  case "$shome" in
-    "$PWD"/*) ok "sealed launch: HOME -> ${shome#$PWD/} (tools that hardcode ~/ land inside)" ;;
-    *) warn "sealed launch: HOME is '$shome' — the wrapper is not sealing"; rc=1 ;;
-  esac
-  gleak=$(printf '%s' "$sgit" | tr ',' '\n' | grep -vE "^($PWD/|/dev/null$|$)" || true)
-  if [ -z "$gleak" ]; then
-    ok "sealed launch: git reads no config outside the workspace"
-  else
-    warn "sealed launch: git reads host config (can run host binaries via credential.helper / core.sshCommand):"
-    printf '%s\n' "$gleak" | sed 's/^/      /' >&2
-    rc=1
-  fi
-  case "$snpm" in
-    "$PWD"/*) ok "sealed launch: npm reads workspace .npmrc" ;;
-    *) warn "sealed launch: npm reads host userconfig ('$snpm')"; rc=1 ;;
-  esac
+# --- .envrc must not re-collapse the boundary -------------------------------
+# `use devbox` in .envrc makes a bare cd equivalent to entering the shell, which
+# is exactly the failure this design exists to prevent. Catch a re-add.
+if [ -f .envrc ] && grep -qE '^[[:space:]]*use[[:space:]]+devbox' .envrc; then
+  warn ".envrc activates devbox ('use devbox') — a bare cd will seal your shell; remove it (SYSTEM-RULES Rule 8)"; rc=1
 else
-  warn "scripts/sealed-exec.sh missing or not executable — nothing is sealed"; rc=1
+  ok ".envrc does not auto-activate (entering the box stays an explicit act)"
 fi
 
-# --- every roster CLI must go through a shim --------------------------------
-# bin/ is ahead of .aihome/npm/bin on PATH, so typing `claude` runs it sealed
-# without anyone remembering a wrapper. An unshimmed CLI is a silent leak.
-if [ -f "[01] system/ai-tools.json" ]; then
-  while IFS= read -r b; do
-    if [ ! -x "bin/$b" ]; then
-      warn "no sealing shim for '$b' — it would run UNSEALED (run: devbox run provision)"; rc=1
-    elif [ -x ".aihome/npm/bin/$b" ] && [ "$(command -v "$b" 2>/dev/null)" != "$PWD/bin/$b" ]; then
-      warn "'$b' resolves to $(command -v "$b" 2>/dev/null), not the shim bin/$b — check PATH order"; rc=1
-    else
-      ok "'$b' launches sealed via bin/$b"
-    fi
-  done < <(jq -r '.clis[].bin' "[01] system/ai-tools.json" 2>/dev/null)
+# --- leak probes: ask the tools themselves, don't trust the env vars --------
+# git is the highest-value probe: agents run git, and a host gitconfig can point
+# git at host binaries via credential.helper / core.sshCommand.
+leaks=$(git config --list --show-origin --show-scope 2>/dev/null \
+        | awk -F'\t' '$1!="local" && $1!="worktree" {print $2}' \
+        | sed 's/^file://' | sort -u \
+        | grep -vE "^($PWD/|/dev/null$)" || true)
+if [ -z "$leaks" ]; then
+  ok "git reads no config outside the workspace"
+else
+  warn "git is reading host config (these can run host binaries via credential.helper / core.sshCommand):"
+  printf '%s\n' "$leaks" | sed 's/^/      /' >&2
+  rc=1
 fi
+npmrc=$(npm config get userconfig 2>/dev/null || true)
+case "$npmrc" in
+  "$PWD"/*) ok "npm reads workspace .npmrc" ;;
+  *) warn "npm reads host userconfig ('$npmrc')"; rc=1 ;;
+esac
 
 # --- bridges: what host access was granted ON PURPOSE -----------------------
 # Applied automatically on shell entry per [01] system/bridges.json. Advisory
@@ -81,19 +74,13 @@ if [ -f "[01] system/bridges.json" ]; then
   offs=$(jq -r '.auto | to_entries[] | select(.value != true) | .key' "[01] system/bridges.json" 2>/dev/null | tr '\n' ' ')
   [ -n "${offs// /}" ] && info "bridge policy: disabled by config -> $offs"
 fi
-# Every check below runs THROUGH the wrapper: asking the ambient shell would
-# report the host's credentials, which is not the question. What matters is
-# what a launched agent can actually authenticate with.
-bp=$(scripts/sealed-exec.sh sh -c '
-  printf "%s\t%s\t%s\t%s\n" \
-    "$(git config --global --get user.name 2>/dev/null)" \
-    "$(git config --global --get user.email 2>/dev/null)" \
-    "$(gh auth status >/dev/null 2>&1 && echo yes || echo no)" \
-    "$(if [ -L "$HOME/.ssh" ]; then echo dir-bridged; elif [ -d "$HOME/.ssh" ]; then echo keys-linked; else echo none; fi)"' 2>/dev/null)
-bname=$(printf '%s' "$bp" | cut -f1)
-bmail=$(printf '%s' "$bp" | cut -f2)
-bgh=$(printf   '%s' "$bp" | cut -f3)
-bssh=$(printf  '%s' "$bp" | cut -f4)
+# We are already inside the box, so these read the sealed home directly.
+bname=$(git config --global --get user.name 2>/dev/null || true)
+bmail=$(git config --global --get user.email 2>/dev/null || true)
+gh auth status >/dev/null 2>&1 && bgh=yes || bgh=no
+if   [ -L "$HOME/.ssh" ]; then bssh=dir-bridged
+elif [ -d "$HOME/.ssh" ]; then bssh=keys-linked
+else bssh=none; fi
 
 if [ -n "$bname$bmail" ]; then
   ok "bridge: git identity (${bname:-?} <${bmail:-?}>)"
