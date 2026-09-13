@@ -49,19 +49,38 @@ the directory) or `devbox shell`, and never install tools globally — add
 packages to `devbox.json`. All workspace environment variables live in
 `devbox.json` (committed); there is no `.env` layer.
 
-**AI-CLI config is sealed to the workspace.** Unlike a normal install, this
-template redirects every AI coding CLI's home/config into `.aihome/` (see the
-`AI_HOME` / `XDG_*` / `*_CONFIG_DIR` env in `devbox.json`). Inside the devbox
-shell, `opencode`, `claude`, etc. read config, credentials, and tool/plugin
-state **only** from `.aihome/` — never from the host's `~/.claude`,
-`~/.config`, or host skills. This keeps every workspace reproducible and
-prevents host config from leaking into requests. Consequences:
+**`HOME` itself is sealed to the workspace.** `devbox.json` points `$HOME` at
+`.aihome/home`, so everything launched in the shell — the AI CLIs, anything they
+spawn, anything you type — reads and writes inside the workspace, including
+tools that hardcode `~/.foo`. `AI_HOME` / `XDG_*` / `*_CONFIG_DIR` remain as
+explicit reinforcement. Nothing comes from the host's `~/.claude`, `~/.config`,
+or `~/.gitconfig`. Consequences:
 
 - The AI CLIs are installed under `.aihome/` by `devbox run provision`, not
   user-globally.
 - This `AGENTS.md` is the authoritative instruction file; because it exists,
   AGENTS.md-aware CLIs do **not** fall back to host `~/.claude` conventions.
-- `devbox run reset-ai` wipes `.aihome/` for a clean re-provision.
+- A sealed home has no credentials. They are bridged back **automatically on
+  shell entry** per `[01] system/bridges.json` — git identity, `gh` auth, and
+  `~/.ssh`. Nothing to run, nothing to remember. The rule is **bridge the
+  credential, never exempt the program**: an exempt `git` is inherited by
+  everything it spawns, which is a door to the whole host. Credentials are
+  *capability*; host config is *context* — only the former is bridged, so host
+  config still cannot reach in and make you confidently wrong.
+- `devbox run bridge` shows what is bridged and what still blocks a push.
+- `.aihome/` is per-machine and rebuildable — never sync it between machines.
+  `devbox run reset-ai` wipes it for a clean re-provision.
+- Editing `devbox.json` does not affect an already-active shell — devbox caches
+  the computed env. Re-enter the directory (direnv watches the file), and run
+  `devbox install` after changing packages.
+
+**macOS and Linux behave identically by construction.** The shell utilities the
+scripts depend on (`coreutils`, `gnused`, `gnugrep`, `findutils`, `gawk`,
+`bash`) plus `gh` are declared devbox packages rather than taken from the host,
+so the same script does not quietly get BSD tools on one machine and GNU on the
+other. Isolation checks test *containment* in `$WORKSPACE_ROOT`, never literal
+paths, because the two platforms store things at different paths inside the
+sealed home.
 
 Canonical verbs:
 
@@ -84,8 +103,16 @@ Canonical verbs:
 - `devbox run ticket <id> [project] ["title"]` — start/resume a ticket: creates
   the `ticket/<id>` branch, scaffolds `03_DRAFTS/<id>/00_TICKET.md`, and prints the
   Working-a-ticket loop (SYSTEM-RULES §10).
-- `devbox run doctor` — verify toolchain, host-isolation, roster, submodule
-  state (incl. unpushed component pins), and knowledge bundle integrity
+- `devbox run bridge [what]` — bridging is automatic; this verb is for
+  inspection and override. No argument lists what is bridged and what still
+  blocks a push. `refresh` re-runs the auto-bridge; `git-identity [name email]`
+  sets an identity the host does not have; `gh` logs in interactively;
+  `ssh-key <path>` links one key instead of all of `~/.ssh` (narrower still:
+  `ssh-add` on the host, which lets the workspace use a key without reading it).
+- `devbox run doctor` — verify toolchain, host-isolation (incl. `HOME` sealing
+  and live leak probes against `git`/`npm`), bridges, macOS/Linux parity,
+  roster, submodule state (incl. unpushed component pins), and knowledge
+  bundle integrity
 - `devbox run archive <project>` — safely retire a project into
   `[99] archive/` (records final pins, detaches submodules properly)
 - `devbox run reset-ai` — wipe `.aihome/` (forces a clean re-provision)

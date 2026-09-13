@@ -138,13 +138,52 @@ frontmatter, no workspace tooling. They have only their own conventions.
 - The workspace toolchain is Devbox-managed and rebuildable: host installs
   are only git + devbox + direnv. Everything else — including the AI coding
   CLIs — is provisioned into the workspace by `devbox run provision`.
-- **Host-isolated by construction.** Inside the devbox shell, every AI CLI's
-  home and config are redirected into the workspace's `.aihome/` (via
-  `AI_HOME` / `XDG_*` / per-CLI `*_CONFIG_DIR` in `devbox.json`). Nothing is
-  read from or written to the host — not `~/.claude`, not `~/.config`, not
-  host skills. Because this workspace ships its own `AGENTS.md`, AGENTS.md-aware
-  CLIs also do not fall back to host conventions. `devbox run reset-ai` wipes
-  `.aihome/` for a clean re-provision.
+- **Host-isolated by construction — `HOME` itself is sealed.** `devbox.json`
+  points `$HOME` at `.aihome/home`, so *every* tool launched in the shell lands
+  inside the workspace, including ones that hardcode `~/.foo` and ones not
+  installed yet. This is the primary lever; `AI_HOME` / `XDG_*` / per-CLI
+  `*_CONFIG_DIR` remain as explicit belt-and-braces. Nothing is read from or
+  written to the host — not `~/.claude`, not `~/.config`, not `~/.gitconfig`.
+  Because this workspace ships its own `AGENTS.md`, AGENTS.md-aware CLIs also do
+  not fall back to host conventions. `devbox run reset-ai` wipes `.aihome/`.
+  - Why `HOME` and not more per-tool variables: redirect-by-variable only
+    captures tools that agreed to honor those variables. Each tool that does not
+    costs another escape hatch (see the OpenCode caveat below) and that list
+    never stops growing. Moving `HOME` is one lever that needs no cooperation.
+  - `HOST_HOME` captures the real home *before* the override, so a bridge can
+    find it deliberately. It is a lookup path, never an automatic fallback.
+- **Bridge the credential, never exempt the program.** A sealed home has no
+  keys, so host access is granted back as named resources — never by letting a
+  program see the host home. Exemptions are inherited by everything a program
+  spawns: the AI runs `git`, `git` runs credential helpers and `ssh`, and a host
+  `.gitconfig` can point those at arbitrary host binaries — so an "exempt" `git`
+  is a door to the whole machine. A bridged credential leaks exactly one thing.
+  - **Credentials are capability; host config is context.** Only capability is
+    bridged. This is why auto-bridging does not weaken the tier system: a
+    bridged token cannot make the next agent confidently wrong, whereas an
+    inherited `~/.gitconfig` or `~/.claude` silently changes how it behaves.
+  - **Bridging is automatic**, applied on every shell entry by
+    `scripts/seal-home.sh` per `[01] system/bridges.json`. A workspace you must
+    remember to unlock is the same fight the sealed `HOME` was meant to end;
+    the policy file — not a command you have to recall — is the record of what
+    is granted. Narrow it by setting an entry to `false`.
+  - Prefer the ssh **agent** over bridging `~/.ssh`: it lets the workspace *use*
+    a key without *reading* it. `SSH_AUTH_SOCK` passes through on its own.
+  - `devbox run bridge` inspects and overrides; `doctor` reports the live state.
+    Neither is required for normal work.
+- **Isolation is checked by containment, never by exact path.** macOS tools
+  write to `~/Library/Application Support/…` and Linux tools to `~/.config/…`;
+  both land inside the sealed home at different paths. `doctor` therefore asks
+  "is this inside `$WORKSPACE_ROOT`?" — a literal-path assertion would pass on
+  one OS and fail on the other. `.aihome/` is per-machine and rebuildable:
+  never sync it between machines, re-provision instead.
+- **The userland comes from devbox, not the host.** `coreutils`, `gnused`,
+  `gnugrep`, `findutils`, `gawk`, `bash`, and `gh` are declared packages so the
+  scripts run against identical tools on macOS and Linux. Relying on whatever
+  the host ships means BSD tools on one and GNU on the other — the same script
+  silently behaving differently per machine. `GIT_CONFIG_SYSTEM=/dev/null`
+  excludes the platform-specific system gitconfig for the same reason (its
+  `osxkeychain` credential helper does not exist on Linux).
 - **OpenCode caveat.** OpenCode does *not* honor the AGENTS.md host-fallback
   rule on its own — it will read the host `~/.claude` prompt and skills unless
   told not to. `devbox.json` therefore also sets `OPENCODE_CONFIG_DIR`
@@ -163,6 +202,13 @@ frontmatter, no workspace tooling. They have only their own conventions.
   that host-isolation is intact.
 - Never install an AI CLI or tool ad hoc; add it to the roster first, then
   `devbox run provision`.
+- **Changing `devbox.json` requires re-entering the shell.** Devbox caches the
+  computed environment, and an already-active shell keeps serving the old one —
+  `devbox run` inside it will not pick up new `env` keys. `.envrc` watches
+  `devbox.json`/`devbox.lock` so direnv reloads on `cd`; after editing packages,
+  run `devbox install`. If a change appears not to apply, check `devbox
+  shellenv` (what devbox *computes*) against the live environment (what the
+  stale shell *has*) before concluding the config is wrong.
 
 ## 9. Documentation Currency (write it back)
 

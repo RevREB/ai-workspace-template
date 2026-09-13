@@ -1,0 +1,15 @@
+{
+  "_comment": "Which host credentials are bridged into the sealed HOME automatically on shell entry (scripts/seal-home.sh, run from the devbox init_hook). Sealing $HOME removes every credential along with the host config; these put back the minimum needed to actually work, without letting any tool read the host home wholesale. Set a value to false to keep that credential out.",
+  "_portability": "Every source below is a $HOST_HOME-relative path that is identical on macOS and Linux, so the bridge needs no platform branching. Platform-specific secret stores are deliberately NOT used: git's osxkeychain helper has no Linux equivalent, so the sealed gitconfig uses 'gh auth git-credential' instead, which behaves the same on both.",
+  "_rule": "Bridge the CREDENTIAL, never exempt the PROGRAM. An exemption is inherited by everything a program spawns; a bridged credential leaks exactly one thing. See SYSTEM-RULES.md Rule 8.",
+  "auto": {
+    "git-identity": true,
+    "gh": true,
+    "ssh": true
+  },
+  "sources": {
+    "git-identity": "$HOST_HOME/.gitconfig  (user.name + user.email only — never the whole file, which can point git at host binaries via credential.helper / core.sshCommand)",
+    "gh": "$HOST_HOME/.config/gh/hosts.yml  (symlinked, so host re-auth propagates and the copy cannot go stale)",
+    "ssh": "$HOST_HOME/.ssh  (symlinked; the ssh-agent socket already passes through on its own, and using the agent is preferable — it lets the workspace USE a key without READING it)"
+  }
+}

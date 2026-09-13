@@ -3,18 +3,30 @@
   "packages": [
     "git@latest",
     "jq@latest",
-    "nodejs@latest"
+    "nodejs@latest",
+    "gh@latest",
+    "bash@latest",
+    "coreutils@latest",
+    "gnused@latest",
+    "gnugrep@latest",
+    "findutils@latest",
+    "gawk@latest"
   ],
   "env": {
     "WORKSPACE_ROOT": "$PWD",
+    "HOST_HOME": "$HOME",
+    "HOME": "$PWD/.aihome/home",
     "AI_HOME": "$PWD/.aihome",
     "XDG_CONFIG_HOME": "$PWD/.aihome/config",
     "XDG_DATA_HOME": "$PWD/.aihome/data",
     "XDG_STATE_HOME": "$PWD/.aihome/state",
     "XDG_CACHE_HOME": "$PWD/.cache",
+    "GIT_CONFIG_GLOBAL": "$PWD/.aihome/home/.gitconfig",
+    "GIT_CONFIG_SYSTEM": "/dev/null",
     "CLAUDE_CONFIG_DIR": "$PWD/.aihome/config/claude",
     "OPENCODE_CONFIG": "$PWD/.aihome/config/opencode/opencode.json",
     "NPM_CONFIG_PREFIX": "$PWD/.aihome/npm",
+    "NPM_CONFIG_USERCONFIG": "$PWD/.aihome/home/.npmrc",
     "PATH": "$PWD/.aihome/npm/bin:$PATH",
     "OPENCODE_CONFIG_DIR": "$PWD/.aihome/config/opencode",
     "OPENCODE_DISABLE_CLAUDE_CODE_PROMPT": "1",
@@ -24,7 +36,8 @@
   "shell": {
     "init_hook": [
       "mkdir -p .aihome/config .aihome/data .aihome/state .aihome/npm/bin .cache",
-      "echo \"ai-workspace: $(basename \"$PWD\") ready — AI config sealed to .aihome/ (host-isolated) — 'devbox run doctor' to verify\""
+      "scripts/seal-home.sh",
+      "echo \"ai-workspace: $(basename \"$PWD\") ready — HOME sealed to .aihome/home (host-isolated) — 'devbox run doctor' to verify\""
     ],
     "scripts": {
       "provision": [
@@ -41,6 +54,9 @@
       ],
       "doctor": [
         "scripts/doctor.sh"
+      ],
+      "bridge": [
+        "scripts/bridge.sh \"$@\""
       ],
       "archive": [
         "scripts/archive.sh \"$@\""
