@@ -8,9 +8,12 @@
 #   devbox run bridge ssh-key <path>        # link ONE key (narrower than the 'ssh' bridge)
 #
 # Normal operation needs none of this: scripts/seal-home.sh applies the bridges
-# declared in [01] system/bridges.json on every shell entry. This verb exists for
-# inspection, for credentials the host does not have to give, and for narrowing
-# the default (e.g. one key instead of all of ~/.ssh).
+# declared in [01] system/bridges.json on every sealed launch. This verb exists
+# for inspection, for credentials the host does not have to give, and for
+# narrowing the default (e.g. one key instead of all of ~/.ssh).
+#
+# Must run sealed — it operates on the sealed home, not yours. 'devbox run
+# bridge' routes through scripts/sealed-exec.sh; invoked directly it will refuse.
 #
 # The rule (SYSTEM-RULES Rule 8): bridge the CREDENTIAL, never exempt the PROGRAM.
 # Exempting a program leaks to everything it spawns — the AI runs git, git runs

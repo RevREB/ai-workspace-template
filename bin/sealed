@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# sealed — run ANY command inside the sealed AI home.
+#
+#   sealed <command> [args...]     e.g.  sealed git status     sealed bash
+#
+# The AI CLIs already have generated shims in this directory, so they seal
+# themselves. Use this for anything else you want to run the way an agent would
+# see it — checking what the agent's git identity is, opening a sealed shell to
+# debug config, or launching a tool that is not on the roster.
+#
+# Committed (unlike the generated per-CLI shims) because it is hand-written and
+# roster-independent.
+root=$(cd "$(dirname "$0")/.." && pwd)
+exec "$root/scripts/sealed-exec.sh" "$@"
